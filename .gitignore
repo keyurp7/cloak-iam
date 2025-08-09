@@ -1,0 +1,83 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+venv/
+env/
+.venv/
+*.egg-info/
+dist/
+build/
+*.sqlite3
+*.log
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# React build output
+/build
+/out
+/.next
+
+# Docker
+docker-compose.override.yml
+*.env
+.env.local
+.env.*.local
+*.log
+tmp/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment and secrets files
+.env
+.env.*
+secrets/
+
+# IDE/editor swap files
+*.swp
+*.swo
+
+# Python test cache
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# Misc
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Build artifacts
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+	
