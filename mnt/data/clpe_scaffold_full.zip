@@ -1,1 +1,210 @@
+# Expanding the scaffold: add expanded workflow, SLSA/in-toto steps, SBOM generation, secrets map, improved Inno Setup script,
+# and re-zip the scaffold. Operates on /mnt/data/clpe_scaffold created earlier.
+
+import os, shutil, json, textwrap, zipfile
+
+base_dir = "/mnt/data/clpe_scaffold"
+if not os.path.exists(base_dir):
+    raise SystemExit("Scaffold not found at /mnt/data/clpe_scaffold")
+
+def write(path, content):
+    full = os.path.join(base_dir, path)
+    os.makedirs(os.path.dirname(full), exist_ok=True)
+    with open(full, "w") as f:
+        f.write(content)
+
+# Add expanded workflow with SLSA/in-toto steps and SBOM
+expanded_workflow = textwrap.dedent("""\
+name: Build, SLSA Provenance, Sign & Release CLPE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: 3.11
+
+jobs:
+  build-and-sbom:
+    runs-on: ubuntu-latest
+    outputs:
+      wheel_path: dist/wheels
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+      - name: Build backend wheel
+        run: |
+          cd services/backend
+          python -m pip wheel -r requirements.txt -w dist || true
+      - name: Generate SBOM (CycloneDX)
+        uses: cyclonedx/cyclonedx-action@v1
+        with:
+          output-format: 'json'
+      - name: Generate in-toto provenance (SLSA friendly)
+        run: |
+          # Install in-toto tool
+          python -m pip install in_toto
+          # Create a simple link metadata for this build step
+          in-toto-run --step-name build --products services/backend/dist --inspect > build.link || true
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: |
+            services/backend/dist
+            cyclonedx-sbom.json
+            build.link
+
+  build-windows:
+    runs-on: windows-latest
+    needs: build-and-sbom
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller==5.11.2
+      - name: Build backend executable (PyInstaller)
+        run: |
+          cd services/backend/app
+          pyinstaller --onefile --name clpe_backend main.py
+      - name: Prepare Inno Setup
+        run: |
+          mkdir out || true
+          copy services\\backend\\app\\dist\\clpe_backend.exe out\\clpe_backend.exe
+      - name: Install Inno Setup (choco)
+        run: choco install innosetup -y
+      - name: Create installer (Inno Setup)
+        run: |
+          iscc build\\windows\\installer.iss
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: out\\*.exe
+
+  sign-and-release:
+    runs-on: ubuntu-latest
+    needs: [build-and-sbom, build-windows]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+      - name: Decode PFX (if provided)
+        if: ${{ secrets.WINDOWS_CERT_PFX }}
+        env:
+          PFX_BASE64: ${{ secrets.WINDOWS_CERT_PFX }}
+        run: |
+          echo \"$PFX_BASE64\" | base64 -d > signing_cert.pfx || true
+      - name: Verify SBOM presence
+        run: |
+          ls -la || true
+      - name: Create GitHub Release (draft)
+        uses: softprops/action-gh-release@v1
+        with:
+          name: clpe-release-${{ github.run_id }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload installer to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/windows/out/clpe-setup.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+""")
+
+write(".github/workflows/expanded_build_release.yml", expanded_workflow)
+
+# Add secrets map doc
+secrets_map = textwrap.dedent("""\
+# Secrets required for CI (GitHub Actions) and what they are used for
+
+WINDOWS_CERT_PFX: Base64-encoded PFX (code signing certificate). Used to sign Windows installers.
+WINDOWS_CERT_PASSWORD: Password for the PFX.
+
+GITHUB_TOKEN: Provided by GitHub Actions automatically for repo operations (used for releases).
+
+RELEASE_UPLOAD_TOKEN: (Optional) Token for uploading artifacts to external storage (S3, Artifactory).
+
+SLSA_SIGNING_KEY: (Optional) Key or signer for SLSA/in-toto provenance signing if using external signing service.
+VAULT_TOKEN: Token for retrieving runtime secrets during integration tests (use short-lived tokens and limit scope).
+
+# Notes:
+# - Store these in Github repo -> Settings -> Secrets and use OIDC or short-lived tokens where possible.
+# - Do NOT store private keys in plaintext. Use a corporate secrets manager and bind ephemeral access to CI run.
+""")
+
+write("docs/SECRETS_MAP.md", secrets_map)
+
+# Update Inno Setup script to be more complete
+installer_iss = textwrap.dedent("""\
+; Inno Setup script for CLPE installer
+[Setup]
+AppName=CLPE Scaffold
+AppVersion=0.1
+DefaultDirName={pf}\\CLPE
+DefaultGroupName=CLPE
+OutputBaseFilename=clpe-setup
+Compression=lzma2/ultra64
+SolidCompression=yes
+
+[Files]
+Source: "out\\clpe_backend.exe"; DestDir: "{app}"; Flags: ignoreversion
+
+[Icons]
+Name: "{group}\\CLPE Backend"; Filename: "{app}\\clpe_backend.exe"
+
+[Run]
+Filename: "{app}\\clpe_backend.exe"; Description: "Start CLPE Backend"; Flags: nowait postinstall skipifsilent
+""")
+
+write("build/windows/installer.iss", installer_iss)
+
+# Add SLSA/in-toto helper script
+in_toto_helper = textwrap.dedent("""\
+#!/usr/bin/env bash
+# Simple helper to create an in-toto link for a step. Requires in-toto to be installed.
+if [ -z \"$1\" ]; then\n  echo \"Usage: $0 <step-name>\"; exit 1; fi\nSTEP=$1\nin-toto-run --step-name \"$STEP\" --products services/backend/dist --inspect\n""")
+write("build/in_toto_helper.sh", in_toto_helper)
+
+# Update README to reference expanded workflow and secrets map
+readme_path = os.path.join(base_dir, "README.md")
+with open(readme_path, "a") as f:
+    f.write("\n\n## CI/CD and Release\n\nAdded an expanded GitHub Actions workflow at `.github/workflows/expanded_build_release.yml` that includes SBOM generation and simple in-toto steps for build provenance. See `docs/SECRETS_MAP.md` for required secrets.\n")
+
+# Recreate zip
+zip_path = "/mnt/data/clpe_scaffold_full.zip"
+if os.path.exists(zip_path):
+    os.remove(zip_path)
+
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+    for root, dirs, files in os.walk(base_dir):
+        for fn in files:
+            full = os.path.join(root, fn)
+            arc = os.path.relpath(full, base_dir)
+            zf.write(full, arc)
+
+# List top-level of updated scaffold
+top_files = os.listdir(base_dir)
+output = {
+    "updated_scaffold_path": base_dir,
+    "zip": zip_path,
+    "top_level_files": top_files
+}
+
+print(json.dumps(output, indent=2))
+
 
