@@ -1,0 +1,136 @@
+# Creating additional deliverables inside the scaffold:
+# - Unit tests for backend (pytest)
+# - Security scan workflow (Bandit, pip-audit, OWASP ZAP baseline scanner steps)
+# - Pen-test Statement of Work (SOW) document
+# - Detailed Windows build & signing runbook (expanded)
+# - Update zip archive to include these additions
+import os, textwrap, zipfile, json, shutil
+
+base_dir = "/mnt/data/clpe_scaffold"
+if not os.path.exists(base_dir):
+    raise SystemExit("Scaffold not found. Please run previous steps.")
+
+def write(path, content):
+    full = os.path.join(base_dir, path)
+    os.makedirs(os.path.dirname(full), exist_ok=True)
+    with open(full, "w") as f:
+        f.write(content)
+
+# 1. Unit tests (pytest) for backend
+test_content = textwrap.dedent("""\
+import asyncio
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_healthz():
+    r = client.get('/healthz')
+    assert r.status_code == 200
+    assert r.json().get('status') == 'ok'
+
+def test_hello():
+    r = client.get('/hello')
+    assert r.status_code == 200
+    assert 'msg' in r.json()
+""")
+write("services/backend/app/tests/test_basic.py", test_content)
+
+# Add pytest requirements
+write("services/backend/requirements-dev.txt", "pytest\nhttpx\npytest-asyncio\n")
+
+# 2. Security scan workflow
+security_workflow = textwrap.dedent("""\
+name: Security Scans (SAST & DAST)
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sast-and-depscan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install bandit & pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit pip-audit
+      - name: Run bandit (SAST)
+        run: |
+          bandit -r services/backend -lll || true
+      - name: Run pip-audit (dependency scan)
+        run: |
+          pip-audit --output=reports/pip-audit.json || true
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: reports
+  dast-zap:
+    runs-on: ubuntu-latest
+    needs: sast-and-depscan
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start backend service (docker-compose)
+        run: |
+          docker compose -f docker-compose.dev.yml up -d --build
+          sleep 8
+      - name: Run OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.4.0
+        with:
+          target: 'http://localhost:8000'
+      - name: Tear down
+        run: docker compose -f docker-compose.dev.yml down
+""")
+write(".github/workflows/security_scan.yml", security_workflow)
+
+# 3. Pen-test SOW (Statement of Work)
+pen_test_sow = textwrap.dedent("""\
+Penetration Testing Statement of Work (SOW) — CLPE\n\nPurpose\n-------\nEngagement to perform a full-scope penetration test and controls verification for the Continuous Least-Privilege Engine (CLPE) prior to production enablement in regulated environments.\n\nScope\n-----\n- External network perimeter (if applicable for SaaS control plane)\n- Internal network segmentation and connector behavior (customer-hosted data-plane components)\n- Web application / APIs (FastAPI endpoints)\n- Authentication & session management, SSO flows, federation\n- Privileged operations workflows (remediation orchestrator)\n- Supply chain review (CI/CD pipeline, artifact signing, SBOM)\n- Configuration & hardening validation (HSM use, key management)\n\nObjectives\n----------\n- Identify critical and high vulnerabilities and provide exploitability proof-of-concept where safe.\n- Validate detection and response: confirm SIEM/XDR/alerting triggers for simulated attacks.\n- Test privilege escalation paths and privileged account misuse.\n- Validate certificate & federation failure modes and response.\n\nDeliverables\n------------\n- Executive summary and risk rating (by asset/team)\n- Detailed technical findings (CVE mapping, PoC) with remediation guidance\n- Evidence of detection: SIEM logs, alerts produced during tests\n- Retest of fixed issues (one retest cycle)\n- Final attestation and remediation timeline recommendations\n\nTimeline\n--------\n- Recon & scoping: 1 week\n- Active testing phase: 2 weeks\n- Reporting & remediation support: 1 week\n- Retest: within 2 weeks of fixes\n\nRules of Engagement\n-------------------\n- Testing windows and blast radius agreed in advance\n- Emergency rollback and contact list defined\n- Data handling and non-disclosure agreement in place\n\nPricing Estimate (indicative)\n-----------------------------\n- Mid-size enterprise: USD 35,000 - 75,000\n- Full purple team (incl. detection/response validation): USD 80,000 - 150,000\n\nContact\n-------\nProvide vendor contact and PO details here.\n""")
+write("docs/PEN_TEST_SOW.md", pen_test_sow)
+
+# 4. Detailed Windows build & signing runbook (expanded)
+runbook = textwrap.dedent("""\
+Windows Build & Signing Runbook (Detailed)\n\nPrerequisites\n-------------\n- Windows 10/11 or Server host with administrative access.\n- Python 3.11 installed and on PATH.\n- Inno Setup installed (https://jrsoftware.org/).\n- Windows SDK installed for signtool.exe OR install osslsigncode as alternative.\n- Access to code signing certificate (PFX file) and secure password.\n- Access to repository with CI workflows.\n\nSteps\n-----\n1. Clone the repo and checkout `main`.\n2. Build backend executable:\n   - Open Developer PowerShell\n   - cd services/backend/app\n   - python -m pip install --upgrade pip pyinstaller\n   - pyinstaller --onefile --name clpe_backend main.py\n   - Verify: dist\\clpe_backend.exe\n3. Prepare Inno Setup:\n   - Edit build\\windows\\installer.iss to reflect product metadata and files.\n   - Run Inno Setup Compiler and build the installer. It produces clpe-setup.exe\n4. Sign the EXE using signtool:\n   - signtool sign /f yourcert.pfx /p <PFX_PASSWORD> /tr http://timestamp.digicert.com /td sha256 /fd sha256 clpe-setup.exe\n   - Verify: signtool verify /pa /v clpe-setup.exe\n5. Upload to internal artifact repo or GitHub Releases.\n\nCI Integration Notes\n--------------------\n- Store PFX in vault and inject into GitHub Actions as base64 via `WINDOWS_CERT_PFX`.\n- Limit access to repo secrets; prefer OIDC where possible.\n- Ensure SLSA/in-toto steps produce provenance and SBOM artifacts during CI.\n\nSecurity\n--------\n- Rotate code-signing certs per policy (e.g., annually) and revoke old keys from CI.\n- Protect PFX with vault and audit access.\n- Use ephemeral service principals for CI where possible.\n""")
+write("docs/WINDOWS_BUILD_RUNBOOK.md", runbook)
+
+# 5. Update README with pointer to new docs
+readme_path = os.path.join(base_dir, "README.md")
+with open(readme_path, "a") as f:
+    f.write("\n\n## Security & Release Additions\n\nAdded unit tests, security scanning workflow, pen-test SOW, and a detailed Windows build & signing runbook. See `services/backend/app/tests`, `.github/workflows/security_scan.yml`, `docs/PEN_TEST_SOW.md`, and `docs/WINDOWS_BUILD_RUNBOOK.md`.\n")
+
+# 6. Re-zip updated scaffold
+zip_path = "/mnt/data/clpe_scaffold_full_plus.zip"
+if os.path.exists(zip_path):
+    os.remove(zip_path)
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+    for root, dirs, files in os.walk(base_dir):
+        for fn in files:
+            full = os.path.join(root, fn)
+            arc = os.path.relpath(full, base_dir)
+            zf.write(full, arc)
+
+# Output created artifacts summary
+created = []
+for root, dirs, files in os.walk(base_dir):
+    for fn in files:
+        created.append(os.path.relpath(os.path.join(root, fn), base_dir))
+
+print(json.dumps({
+    "scaffold_path": base_dir,
+    "zip": zip_path,
+    "files_count": len(created),
+    "new_files_sample": [
+        "services/backend/app/tests/test_basic.py",
+        ".github/workflows/security_scan.yml",
+        "docs/PEN_TEST_SOW.md",
+        "docs/WINDOWS_BUILD_RUNBOOK.md"
+    ]
+}, indent=2))
+
