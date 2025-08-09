@@ -1,0 +1,96 @@
+name: Build, Sign & Release CLPE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: 3.11
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    outputs:
+      image: clpe-backend:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+      - name: Build backend wheel (example)
+        run: |
+          cd services/backend
+          pip wheel -r requirements.txt -w dist || true
+      - name: Build docker images
+        run: |
+          docker build -t clpe-backend:latest services/backend
+          docker build -t clpe-ad-connector:latest services/connectors/ad_connector
+      - name: Generate SBOMs
+        uses: cyclonedx/cyclonedx-action@v1
+        with:
+          output-format: 'json'
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: |
+            services/backend/dist
+            # add other artifact paths as needed
+
+  build-windows-installer:
+    runs-on: windows-latest
+    needs: build-linux
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller==5.11.2 wheel
+      - name: Build backend executable (PyInstaller)
+        run: |
+          cd services/backend/app
+          pyinstaller --onefile --name clpe_backend main.py
+          echo "Window exe build complete"
+      - name: Prepare Inno Setup script
+        run: |
+          echo "Preparing Inno Setup script"
+          mkdir -p out
+          cp services/backend/app/dist/clpe_backend.exe out/
+          # copy any runtime files needed
+      - name: Install Inno Setup (choco)
+        run: choco install innosetup -y
+      - name: Create installer (Inno Setup)
+        run: |
+          # Build an .iss file dynamically or use services/build/windows/installer.iss
+          iscc build/windows/installer.iss
+      - name: Code-sign the installer (PFX)
+        if: ${{ secrets.WINDOWS_CERT_PFX && secrets.WINDOWS_CERT_PASSWORD }}
+        env:
+          PFX_BASE64: ${{ secrets.WINDOWS_CERT_PFX }}
+          PFX_PASS: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          echo "$PFX_BASE64" | base64 -d > signing_cert.pfx
+          # Use signtool (Windows SDK) or osslsigncode if available:
+          # Example with PowerShell signtool (assumes SDK installed on runner):
+          $env:PFX_PASS="${PFX_PASS}"
+          signtool sign /f signing_cert.pfx /p $env:PFX_PASS /tr http://timestamp.digicert.com /td sha256 /fd sha256 out/clpe-setup.exe
+      - name: Upload installer to release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: clpe-setup-${{ github.run_id }}.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts (backup)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: out/*.exe
