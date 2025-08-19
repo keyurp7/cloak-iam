@@ -1,0 +1,55 @@
+{
+  "basics": {
+    "name": "YOUR NAME",
+    "email": "you@example.com",
+    "website": "https://example.com",
+    "summary": "IAM specialist focused on delivering zero trust, JIT access, and measurable risk reduction across cloud and enterprise.",
+    "profiles": [
+      { "network": "LinkedIn", "username": "your-handle", "url": "https://www.linkedin.com/in/your-handle" },
+      { "network": "GitHub", "username": "your-handle", "url": "https://github.com/your-handle" }
+    ]
+  },
+  "stats": {
+    "yearsInIam": "8+",
+    "clouds": ["AWS", "Azure", "GCP"],
+    "certs": ["CISSP", "CCSP", "AWS SA"]
+  },
+  "skills": [
+    "Zero Trust", "SSO / SAML / OIDC", "PAM", "IGA", "RBAC / ABAC",
+    "AWS IAM", "Azure AD / Entra", "GCP IAM", "CIEM", "Terraform", "Python Automation"
+  ],
+  "work": [
+    {
+      "name": "Company",
+      "position": "Senior IAM Specialist",
+      "startDate": "2021",
+      "endDate": "Present",
+      "highlights": [
+        "Led Zero Trust rollout reducing high-risk permissions by 72%",
+        "Implemented JIT access with approvals and session recording",
+        "Automated access reviews and provisioning with Terraform & serverless"
+      ]
+    },
+    {
+      "name": "Company",
+      "position": "IAM Engineer",
+      "startDate": "2018",
+      "endDate": "2021",
+      "highlights": [
+        "Built centralized SSO using OIDC/SAML across 40+ apps",
+        "Designed RBAC model and separation of duties controls",
+        "Authored guardrails and policy-as-code for cloud platforms"
+      ]
+    }
+  ],
+  "certifications": ["CISSP", "CCSP", "AWS Solutions Architect", "Azure Security Engineer"],
+  "projects": [
+    { "name": "CIEM Policy Auditor", "summary": "Automated analysis of cloud policies to detect privilege escalation and overly permissive roles.", "url": "#" },
+    { "name": "JIT Access Broker", "summary": "Workflow service issuing short-lived credentials via OIDC device flow and approvals.", "url": "#" }
+  ],
+  "writing": [
+    { "title": "From RBAC to ABAC: Evolving Access Models", "url": "#" },
+    { "title": "Designing Practical Zero Trust in Multi-Cloud", "url": "#" }
+  ]
+}
+

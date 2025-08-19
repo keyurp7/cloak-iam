@@ -1,3 +1,66 @@
+# IAM Specialist Website
+
+Professional, responsive one-page portfolio tailored for Identity & Access Management specialists.
+
+## Quick start
+
+- Open `index.html` in a browser, or run a simple server:
+
+```bash
+python3 -m http.server 8080
+```
+
+Then visit `http://localhost:8080`.
+
+## Customize
+
+Two easy options:
+
+1) Edit content inline in `index.html` (headings, sections, links)
+2) Preferably, edit `assets/resume.json`. The site auto-hydrates name, summary, skills, experience, certifications, projects, and links.
+
+Fields supported in `assets/resume.json`:
+
+```json
+{
+  "basics": {
+    "name": "YOUR NAME",
+    "email": "you@example.com",
+    "website": "https://example.com",
+    "summary": "...",
+    "profiles": [
+      { "network": "LinkedIn", "username": "your-handle", "url": "https://www.linkedin.com/in/your-handle" },
+      { "network": "GitHub", "username": "your-handle", "url": "https://github.com/your-handle" }
+    ]
+  },
+  "stats": { "yearsInIam": "8+", "clouds": ["AWS","Azure","GCP"], "certs": ["CISSP"] },
+  "skills": ["Zero Trust", "PAM"],
+  "work": [ { "name": "Company", "position": "Role", "startDate": "2021", "endDate": "Present", "highlights": ["Achievement"] } ],
+  "certifications": ["CISSP"],
+  "projects": [ { "name": "Project", "summary": "...", "url": "https://..." } ],
+  "writing": [ { "title": "Post title", "url": "https://..." } ]
+}
+```
+
+To update the resume PDF, replace `assets/resume.pdf` and the hero download button will use it automatically.
+
+## Theming
+
+- Automatic dark/light based on system; toggle via the moon button
+- Colors set via CSS variables in `assets/styles.css`
+
+## Deploy
+
+- GitHub Pages: push this folder; set Pages source to the root
+- Netlify: drag-and-drop the folder or `netlify deploy`
+- Cloudflare Pages or Vercel: static output, no build step needed
+
+## Accessibility & SEO
+
+- Semantic headings, landmarks, and skip link
+- High contrast colors; reduced motion friendly
+- JSON-LD Person schema in `index.html`
+
 
 # CLOAK: Enterprise Continuous Least-Privilege IAM Platform
 
