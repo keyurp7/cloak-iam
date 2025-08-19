@@ -1,5 +1,8 @@
 name: Build, Sign & Release CLPE
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]
@@ -45,6 +48,8 @@ jobs:
   build-windows-installer:
     runs-on: windows-latest
     needs: build-linux
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
