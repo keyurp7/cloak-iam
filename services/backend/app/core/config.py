@@ -1,6 +1,6 @@
 import os
 from functools import lru_cache
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from jose import jwt
 from passlib.context import CryptContext
@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     secret_key: str = "dev-secret-key-change-me"
     access_token_expires_minutes: int = 60
     jwt_algorithm: str = "HS256"
+
+    cors_allow_origins: List[str] = ["*"]
 
     # Generated at first run for demo admin default password "changeit!" unless overridden
     initial_admin_hashed_password: str | None = None

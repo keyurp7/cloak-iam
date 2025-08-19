@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r services/backend/requirements.txt
@@ -31,13 +31,44 @@ jobs:
         run: |
           mypy services/backend/app
 
-      - name: Run tests
+      - name: Run backend tests
         env:
           SECRET_KEY: test-secret-key-123
           INITIAL_ADMIN_PASSWORD: changeit!
         run: |
           pytest -q services/backend/tests
 
-      - name: Build Docker image
+      - name: Build backend Docker image
         run: |
           docker build -f services/backend/Dockerfile -t cloak-backend:ci .
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: services/frontend
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Lint frontend
+        working-directory: services/frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: services/frontend
+        env:
+          NEXT_PUBLIC_BACKEND_URL: http://localhost:8000
+        run: npm run build
+
+      - name: Build frontend Docker image
+        run: |
+          docker build -f services/frontend/Dockerfile -t cloak-frontend:ci .
