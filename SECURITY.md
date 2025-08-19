@@ -2,20 +2,22 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
-
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+- Main branch: actively maintained with security updates
+- Releases: security fixes will be backported to the two most recent minor versions when feasible
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+Please report suspected vulnerabilities to security@cloak-iam.com. Include:
+- Affected component(s) and version/commit
+- Reproduction steps or PoC
+- Impact assessment and suggested mitigation (if any)
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+We will acknowledge within 72 hours and provide regular status updates until resolution.
+
+## Secure Development Practices
+
+- All changes go through CI (lint, type-check, tests)
+- Secrets never committed; use environment variables and secret managers
+- Dependencies pinned; update via PR with security review
+- Containers run as non-root; minimal base images
+- SBOM and provenance can be added in release pipelines
