@@ -1,0 +1,13 @@
+name: gitleaks
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: gitleaks
+        uses: zricethezav/gitleaks-action@v2
