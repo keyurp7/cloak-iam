@@ -1,0 +1,10 @@
+{
+  "root": true,
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "@next/next/no-sync-scripts": "error",
+    "react/jsx-no-target-blank": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error"
+  }
+}

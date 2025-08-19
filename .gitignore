@@ -81,3 +81,16 @@ build/
 *.so
 *.dylib
 	
+
+# Additional ignores
+pip-wheel-metadata/
+.nox/
+.hypothesis/
+.eggs/
+*.egg
+MANIFEST
+*.pem
+*.key
+*.pfx
+*.p12
+	
