@@ -1,0 +1,3 @@
+SafeName,PlatformID,AccountName,UserName,Address,PlatformAccountID,SecretType,Secret
+Safe1,Windows,account1,user1,host1,1234,password,Passw0rd!
+Safe1,Windows,account2,user2,host2,1235,password,Passw0rd!
