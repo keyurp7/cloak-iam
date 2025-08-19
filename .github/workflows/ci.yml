@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/backend/requirements.txt
+
+      - name: Lint (ruff)
+        run: |
+          ruff check services/backend
+
+      - name: Type-check (mypy)
+        run: |
+          mypy services/backend/app
+
+      - name: Run tests
+        env:
+          SECRET_KEY: test-secret-key-123
+          INITIAL_ADMIN_PASSWORD: changeit!
+        run: |
+          pytest -q services/backend/tests
+
+      - name: Build Docker image
+        run: |
+          docker build -f services/backend/Dockerfile -t cloak-backend:ci .

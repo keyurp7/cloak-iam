@@ -1,0 +1,13 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: services/backend/Dockerfile
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-me}
+      - ACCESS_TOKEN_EXPIRES_MINUTES=${ACCESS_TOKEN_EXPIRES_MINUTES:-60}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD:-changeit!}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
