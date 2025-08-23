@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IAM Specialist — Your Name</title>
+    <meta name="description" content="Identity & Access Management specialist portfolio: Zero Trust, IAM architecture, PAM, SSO, Federation, Governance." />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="color-scheme" content="light dark" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="#top" class="brand" aria-label="Homepage">
+          <span class="brand-initials" aria-hidden="true">IAM</span>
+          <span class="brand-text">Your Name</span>
+        </a>
+        <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav">☰</button>
+        <nav id="site-nav" class="site-nav" aria-label="Primary">
+          <a href="#about">About</a>
+          <a href="#experience">Experience</a>
+          <a href="#skills">Skills</a>
+          <a href="#certs">Certifications</a>
+          <a href="#projects">Projects</a>
+          <a href="#contact">Contact</a>
+          <a class="button button--ghost" href="./resume.pdf" target="_blank" rel="noopener">Download Resume</a>
+          <button id="theme-toggle" class="button button--icon" aria-pressed="false" aria-label="Toggle theme">🌗</button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero container" aria-labelledby="hero-title">
+        <div class="hero-content">
+          <h1 id="hero-title">Identity & Access Management Specialist</h1>
+          <p class="lead">I design and implement secure, scalable IAM solutions across cloud and enterprise: Zero Trust, SSO, Federation, Lifecycle, PAM, and Governance.</p>
+          <div class="hero-cta">
+            <a class="button" href="#contact">Work with me</a>
+            <a class="button button--secondary" href="#projects">See case studies</a>
+          </div>
+          <ul class="hero-highlights">
+            <li>Zero Trust & Risk-based auth</li>
+            <li>SSO/OIDC/SAML, SCIM, MFA</li>
+            <li>PAM, IGA, JIT/JEA</li>
+            <li>Azure AD, Okta, AWS IAM</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="about" class="section container" aria-labelledby="about-title">
+        <h2 id="about-title">About</h2>
+        <p>
+          IAM specialist with a record of leading transformations that reduce risk and improve user experience. I align controls with business objectives and
+          measurable security outcomes.
+        </p>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-number">8+ yrs</span><span class="stat-label">Experience</span></div>
+          <div class="stat"><span class="stat-number">30%+</span><span class="stat-label">Auth Friction Reduced</span></div>
+          <div class="stat"><span class="stat-number">99.9%</span><span class="stat-label">Conditional Access Coverage</span></div>
+          <div class="stat"><span class="stat-number">100k+</span><span class="stat-label">Identities Managed</span></div>
+        </div>
+      </section>
+
+      <section id="experience" class="section container" aria-labelledby="exp-title">
+        <h2 id="exp-title">Experience</h2>
+        <ol class="timeline" aria-label="Career timeline">
+          <li class="timeline-item">
+            <div class="timeline-header">
+              <h3>Senior IAM Architect — Company A</h3>
+              <span class="pill">2022 — Present</span>
+            </div>
+            <ul class="bullets">
+              <li>Led Zero Trust rollout with risk-based policies across cloud and on-prem.</li>
+              <li>Migrated legacy SAML apps to OIDC/OAuth with SCIM provisioning.</li>
+              <li>Delivered PAM program (JIT/JEA) cutting privileged standing access by 85%.</li>
+            </ul>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-header">
+              <h3>IAM Engineer — Company B</h3>
+              <span class="pill">2019 — 2022</span>
+            </div>
+            <ul class="bullets">
+              <li>Built identity lifecycle with HR as source of truth and automated joiner/mover/leaver.</li>
+              <li>Implemented MFA & conditional access, increasing coverage to 99.9%.</li>
+              <li>Reduced authentication incidents by 45% via telemetry and policy tuning.</li>
+            </ul>
+          </li>
+        </ol>
+      </section>
+
+      <section id="skills" class="section container" aria-labelledby="skills-title">
+        <h2 id="skills-title">Skills</h2>
+        <div class="tags">
+          <span>Azure AD/Entra ID</span>
+          <span>Okta</span>
+          <span>AWS IAM</span>
+          <span>GCP IAM</span>
+          <span>OIDC/OAuth2</span>
+          <span>SAML 2.0</span>
+          <span>SCIM</span>
+          <span>MFA/WebAuthn</span>
+          <span>Conditional Access</span>
+          <span>PAM/JIT/JEA</span>
+          <span>IGA</span>
+          <span>Terraform</span>
+          <span>Python</span>
+          <span>PowerShell</span>
+          <span>KQL</span>
+        </div>
+      </section>
+
+      <section id="certs" class="section container" aria-labelledby="certs-title">
+        <h2 id="certs-title">Certifications</h2>
+        <ul class="list">
+          <li>Microsoft Certified: Identity and Access Administrator Associate</li>
+          <li>Okta Certified Professional</li>
+          <li>AWS Certified Security – Specialty</li>
+        </ul>
+      </section>
+
+      <section id="projects" class="section container" aria-labelledby="projects-title">
+        <h2 id="projects-title">Case Studies</h2>
+        <div class="cards">
+          <article class="card">
+            <div class="card-body">
+              <h3>Global SSO Modernization</h3>
+              <p>Migrated 120+ apps from ADFS to OIDC with SCIM; policy-based access and staged MFA rollout.</p>
+              <ul class="chips">
+                <li>OIDC</li>
+                <li>SCIM</li>
+                <li>Terraform</li>
+              </ul>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <h3>Privileged Access Program</h3>
+              <p>Introduced JIT and session recording; eliminated standing admin; measurable risk reduction.</p>
+              <ul class="chips">
+                <li>PAM</li>
+                <li>JIT</li>
+                <li>SIEM</li>
+              </ul>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <h3>Lifecycle Automation</h3>
+              <p>HR-driven provisioning with attribute-based access and deprovisioning SLAs under 15 minutes.</p>
+              <ul class="chips">
+                <li>IGA</li>
+                <li>SCIM</li>
+                <li>PowerShell</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="contact" class="section container" aria-labelledby="contact-title">
+        <h2 id="contact-title">Contact</h2>
+        <p>
+          Ready to discuss your IAM roadmap? Reach me at
+          <a href="mailto:email@example.com">email@example.com</a> or connect on
+          <a href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a>.
+        </p>
+        <form class="contact-form" action="mailto:email@example.com" method="post" enctype="text/plain">
+          <div class="form-row">
+            <label>
+              Name
+              <input name="name" type="text" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" required />
+            </label>
+          </div>
+          <label>
+            Message
+            <textarea name="message" rows="5" required></textarea>
+          </label>
+          <button class="button" type="submit">Send</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span>© <span id="year"></span> Your Name</span>
+        <a href="#top" class="to-top">Back to top ↑</a>
+      </div>
+    </footer>
+
+    <script src="./script.js" defer></script>
+  </body>
+  </html>
+
